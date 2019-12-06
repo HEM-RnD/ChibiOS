@@ -1756,7 +1756,7 @@
  */
 #if ((STM32_PLLI2SDIVQ_VALUE >= 1) && (STM32_PLLI2SDIVQ_VALUE <= 32)) ||    \
     defined(__DOXYGEN__)
-#define STM32_PLLI2SDIVQ            ((STM32_PLLI2SQ_VALUE - 1) << 0)
+#define STM32_PLLI2SDIVQ            ((STM32_PLLI2SDIVQ_VALUE - 1) << 0)
 #else
 #error "invalid STM32_PLLI2SDIVQ_VALUE value specified"
 #endif
