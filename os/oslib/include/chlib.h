@@ -109,8 +109,15 @@
 #endif
 
 #if !defined(CH_CFG_USE_OBJ_CACHES)
-//#error "CH_CFG_USE_OBJ_CACHES not defined in chconf.h"
-#define CH_CFG_USE_OBJ_CACHES 0
+#error "CH_CFG_USE_OBJ_CACHES not defined in chconf.h"
+#endif
+
+#if !defined(CH_CFG_USE_DELEGATES)
+#error "CH_CFG_USE_DELEGATES not defined in chconf.h"
+#endif
+
+#if !defined(CH_CFG_USE_JOBS)
+#error "CH_CFG_USE_JOBS not defined in chconf.h"
 #endif
 
 /* Objects factory options checks.*/
@@ -176,17 +183,20 @@
     (CH_LICENSE_FEATURES == CH_FEATURES_BASIC)
 
 /* Restricted subsystems.*/
-#undef CH_CFG_USE_MEMCORE
 #undef CH_CFG_USE_HEAP
 #undef CH_CFG_USE_MEMPOOLS
 #undef CH_CFG_USE_OBJ_FIFOS
 #undef CH_CFG_USE_PIPES
+#undef CH_CFG_USE_OBJ_CACHES
+#undef CH_CFG_USE_DELEGATES
+#undef CH_CFG_USE_JOBS
 
-#define CH_CFG_USE_MEMCORE                  FALSE
 #define CH_CFG_USE_HEAP                     FALSE
 #define CH_CFG_USE_MEMPOOLS                 FALSE
 #define CH_CFG_USE_OBJ_FIFOS                FALSE
 #define CH_CFG_USE_PIPES                    FALSE
+#define CH_CFG_USE_OBJ_CACHES               FALSE
+#define CH_CFG_USE_JOBS                     FALSE
 
 #endif /* (CH_CUSTOMER_LIC_OSLIB == FALSE) ||
           (CH_LICENSE_FEATURES == CH_FEATURES_BASIC) */
@@ -216,6 +226,8 @@
 #include "chobjfifos.h"
 #include "chpipes.h"
 #include "chobjcaches.h"
+#include "chdelegates.h"
+#include "chjobs.h"
 #include "chfactory.h"
 
 /*===========================================================================*/

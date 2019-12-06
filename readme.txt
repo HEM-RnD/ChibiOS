@@ -12,7 +12,7 @@
   |  +--hal/                    - Builders for HAL.
   |  +--nil/                    - Builders for NIL.
   |  +--rt/                     - Builders for RT.
-  +--ext/                       - External libraries, not part of ChibiOS/RT.
+  +--ext/                       - External libraries, not part of ChibiOS.
   +--os/                        - ChibiOS components.
   |  +--common/                 - Shared OS modules.
   |  |  +--abstractions/        - API emulator wrappers.
@@ -23,8 +23,8 @@
   |  |  +--startup/             - Startup support.
   |  +--ex/                     - EX component.
   |  |  +--dox/                 - EX documentation resources.
-  |  |  +--Bosch /              - EX complex drivers for Bosch devices.
-  |  |  +--ST/                  - EX complex drivers for ST devices.
+  |  |  +--include/             - EX header files.
+  |  |  +--devices /            - EX complex drivers.
   |  +--hal/                    - HAL component.
   |  |  +--boards/              - HAL board support files.
   |  |  +--dox/                 - HAL documentation resources.
@@ -74,8 +74,16 @@
 *****************************************************************************
 
 *** Next ***
-- HAL: TRNG support added to STM32F7xx, STM32G0xx, STM32G4xx, STM32H7xx
-       and STM32L0xx.
+- HAL: Idle callback support for STM32 USARTv1 UART driver.
+- LIB: Added support for asynchronous jobs queues to OSLIB.
+- LIB: Added support for delegate threads to OSLIB.
+- NIL: Improvements to messages, new functions chMsgWaitS(),
+       chMsgWaitTimeoutS(), chMsgWaitTimeout().  
+- RT:  Improvements to messages, new functions chMsgWaitS(),
+       chMsgWaitTimeoutS(), chMsgWaitTimeout(), chMsgPollS(),
+       chMsgPoll().
+- HAL: TRNG support added to STM32F7xx, STM32G0xx, STM32G4xx,
+       STM32H7xx and STM32L0xx.
 - NEW: Added support for .cc files extensions in makefiles.
 - HAL: New RTCv3 driver for STM32G0xx and STM32G4xx.
 - HAL: Added support for DAC3 and DAC4 in STM32 DACv1 driver.
@@ -89,9 +97,9 @@
 - HAL: STM32 DMAv1 driver improvements and generalization, added support
        for 8 channels.
 - HAL: Initial STM32G4xx support in HAL.
-- HAL: Added script to generate board files from command line, just run
-       ./os/hal/boards/genboard.sh with the board directory name as
-       parameter.
+- HAL: Added script to generate board files from command line, just
+       run ./os/hal/boards/genboard.sh with the board directory name
+       as parameter.
 - HAL: Modified the ST driver to support, optionally, multiple additional
        callback-capable channels.
 - RT:  Removed regarm_t type from port layer and replaced with uint32_t, this
@@ -135,6 +143,10 @@
 - HAL: Added a new interface for range-finder devices (used by EX).
 - HAL: Added mcuconf.h updater tool for STM32F407 (backported to 19.1.1).
 - NIL: Integrated NIL 4.0.
+- FIX: Fixed I2C fallback driver broken (bug #1061)
+       (backported to 19.1.4)(backported to 18.2.3).
+- FIX: Fixed bug in chVTGetSystemTimeX() (bug #1060)
+       (backported to 19.1.4)(backported to 18.2.3).
 - FIX: Fixed STM32 ADC1 sample time macros (bug #1059)
        (backported to 19.1.4)(backported to 18.2.3).
 - FIX: Fixed STM32 ADCv1 error callback disabled on some devices (bug #1058)

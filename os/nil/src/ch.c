@@ -272,7 +272,7 @@ void chDbgCheckClassS(void) {
  * @special
  */
 void chSysInit(void) {
-  const thread_config_t *tcp;
+  const thread_descriptor_t *tdp;
 
   /* Optional library modules.*/
   _oslib_init();
@@ -302,11 +302,11 @@ void chSysInit(void) {
 
 #if CH_CFG_AUTOSTART_THREADS == TRUE
   /* Iterates through the list of threads to be auto-started.*/
-  tcp = nil_thd_configs;
+  tdp = nil_thd_configs;
   do {
-    (void) chThdCreateI(tcp);
-    tcp++;
-  } while (tcp->funcp != NULL);
+    (void) chThdCreateI(tdp);
+    tdp++;
+  } while (tdp->funcp != NULL);
 #endif
 
   /* Starting the dance.*/
@@ -542,7 +542,8 @@ void chSysRestoreStatusX(syssts_t sts) {
  */
 bool chSysIsCounterWithinX(rtcnt_t cnt, rtcnt_t start, rtcnt_t end) {
 
-  return (bool)((cnt - start) < (end - start));
+  return (bool)(((rtcnt_t)cnt - (rtcnt_t)start) <=
+                ((rtcnt_t)end - (rtcnt_t)start - (rtcnt_t)1));
 }
 
 /**
@@ -723,31 +724,50 @@ msg_t chSchGoSleepTimeoutS(tstate_t newstate, sysinterval_t timeout) {
 }
 
 /**
+ * @brief   Checks if the specified time is within the specified time range.
+ * @note    When start==end then the function returns always true because the
+ *          whole time range is specified.
+ *
+ * @param[in] time      the time to be verified
+ * @param[in] start     the start of the time window (inclusive)
+ * @param[in] end       the end of the time window (non inclusive)
+ * @retval true         current time within the specified time window.
+ * @retval false        current time not within the specified time window.
+ *
+ * @xclass
+ */
+bool chTimeIsInRangeX(systime_t time, systime_t start, systime_t end) {
+
+  return (bool)((systime_t)((systime_t)(time) - (systime_t)(start)) <=
+      (systime_t)((systime_t)(end) - (systime_t)(start) - (systime_t)1));
+}
+
+/**
  * @brief   Creates a new thread into a static memory area.
  * @details The new thread is initialized and make ready to execute.
  * @note    A thread can terminate by calling @p chThdExit() or by simply
  *          returning from its main function.
  *
- * @param[out] tcp      pointer to the thread configuration structure
+ * @param[out] tdp      pointer to the thread descriptor structure
  * @return              The pointer to the @p thread_t structure allocated for
  *                      the thread.
  *
  * @iclass
  */
-thread_t *chThdCreateI(const thread_config_t *tcp) {
+thread_t *chThdCreateI(const thread_descriptor_t *tdp) {
   thread_t *tp;
 
-  chDbgCheck((tcp->prio < (tprio_t)CH_CFG_MAX_THREADS) &&
-             (tcp->wbase != NULL) &&
-             MEM_IS_ALIGNED(tcp->wbase, PORT_WORKING_AREA_ALIGN) &&
-             (tcp->wend > tcp->wbase) &&
-             MEM_IS_ALIGNED(tcp->wbase, PORT_STACK_ALIGN) &&
-             (tcp->funcp != NULL));
+  chDbgCheck((tdp->prio < (tprio_t)CH_CFG_MAX_THREADS) &&
+             (tdp->wbase != NULL) &&
+             MEM_IS_ALIGNED(tdp->wbase, PORT_WORKING_AREA_ALIGN) &&
+             (tdp->wend > tdp->wbase) &&
+             MEM_IS_ALIGNED(tdp->wbase, PORT_STACK_ALIGN) &&
+             (tdp->funcp != NULL));
 
   chDbgCheckClassI();
 
   /* Pointer to the thread slot to be used.*/
-  tp = &nil.threads[tcp->prio];
+  tp = &nil.threads[tdp->prio];
   chDbgAssert(NIL_THD_IS_WTSTART(tp) || NIL_THD_IS_FINAL(tp),
               "priority slot taken");
 
@@ -759,7 +779,7 @@ thread_t *chThdCreateI(const thread_config_t *tcp) {
 #endif
 
   /* Port dependent thread initialization.*/
-  PORT_SETUP_CONTEXT(tp, tcp->wbase, tcp->wend, tcp->funcp, tcp->arg);
+  PORT_SETUP_CONTEXT(tp, tdp->wbase, tdp->wend, tdp->funcp, tdp->arg);
 
   /* Initialization hook.*/
   CH_CFG_THREAD_EXT_INIT_HOOK(tp);
@@ -774,17 +794,17 @@ thread_t *chThdCreateI(const thread_config_t *tcp) {
  * @note    A thread can terminate by calling @p chThdExit() or by simply
  *          returning from its main function.
  *
- * @param[out] tcp      pointer to the thread configuration structure
+ * @param[out] tdp      pointer to the thread descriptor structure
  * @return              The pointer to the @p thread_t structure allocated for
  *                      the thread.
  *
  * @api
  */
-thread_t *chThdCreate(const thread_config_t *tcp) {
+thread_t *chThdCreate(const thread_descriptor_t *tdp) {
   thread_t *tp;
 
   chSysLock();
-  tp = chThdCreateI(tcp);
+  tp = chThdCreateI(tdp);
   chSchRescheduleS();
   chSysUnlock();
 

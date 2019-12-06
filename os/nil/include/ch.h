@@ -407,9 +407,9 @@ typedef struct nil_system nil_system_t;
 typedef void (*tfunc_t)(void *p);
 
 /**
- * @brief   Type of a structure representing a thread static configuration.
+ * @brief   Type of a thread descriptor.
  */
-typedef struct nil_thread_cfg thread_config_t;
+typedef struct nil_thread_descriptor thread_descriptor_t;
 
 /**
  * @brief   Type of a structure representing a thread.
@@ -447,13 +447,13 @@ struct nil_threads_queue {
 };
 
 /**
- * @brief   Structure representing a thread static configuration.
+ * @brief   Structure representing a thread descriptor.
  */
-struct nil_thread_cfg {
-  tprio_t           prio;       /**< @brief Thread priority slot.           */
-  const char        *namep;     /**< @brief Thread name, for debugging.     */
+struct nil_thread_descriptor {
+  const char        *name;      /**< @brief Thread name, for debugging.     */
   stkalign_t        *wbase;     /**< @brief Thread working area base.       */
   stkalign_t        *wend;      /**< @brief Thread working area end.        */
+  tprio_t           prio;       /**< @brief Thread priority slot.           */
   tfunc_t           funcp;      /**< @brief Thread function.                */
   void              *arg;       /**< @brief Thread function argument.       */
 };
@@ -575,21 +575,33 @@ struct nil_system {
  * @brief   Start of user threads table.
  */
 #define THD_TABLE_BEGIN                                                     \
-  const thread_config_t nil_thd_configs[] = {
+  const thread_descriptor_t nil_thd_configs[] = {
 
 /**
  * @brief   Entry of user threads table
  */
-#define THD_TABLE_THREAD(prio, name, wap, funcp, arg)                       \
-  {prio, name,                                                              \
-   wap, THD_WORKING_AREA_END(wap),                                          \
-   funcp, arg},
+#define THD_TABLE_THREAD(_prio, _name, _wap, _funcp, _arg)                  \
+  {                                                                         \
+    .name  = (_name),                                                       \
+    .wbase = (_wap),                                                        \
+    .wend  = THD_WORKING_AREA_END(_wap),                                    \
+    .prio  = (_prio),                                                       \
+    .funcp = (_funcp),                                                      \
+    .arg   = (_arg)                                                         \
+  },
 
 /**
  * @brief   End of user threads table.
  */
 #define THD_TABLE_END                                                       \
-  {CH_CFG_MAX_THREADS, "idle", THD_IDLE_BASE, THD_IDLE_END, NULL, NULL}                   \
+  {                                                                         \
+    .name  = "idle",                                                        \
+    .wbase = THD_IDLE_BASE,                                                 \
+    .wend  = THD_IDLE_END,                                                  \
+    .prio  = CH_CFG_MAX_THREADS,                                            \
+    .funcp = NULL,                                                          \
+    .arg  = NULL                                                            \
+  }                                                                         \
 };
 /** @} */
 
@@ -1267,23 +1279,6 @@ struct nil_system {
   ((sysinterval_t)((systime_t)((systime_t)(end) - (systime_t)(start))))
 
 /**
- * @brief   Checks if the specified time is within the specified time range.
- * @note    When start==end then the function returns always true because the
- *          whole time range is specified.
- *
- * @param[in] time      the time to be verified
- * @param[in] start     the start of the time window (inclusive)
- * @param[in] end       the end of the time window (non inclusive)
- * @retval true         current time within the specified time window.
- * @retval false        current time not within the specified time window.
- *
- * @xclass
- */
-#define chTimeIsInRangeX(time, start, end)                                  \
-  ((bool)((systime_t)((systime_t)(time) - (systime_t)(start)) <             \
-          (systime_t)((systime_t)(end) - (systime_t)(start))))
-
-/**
  * @brief   Function parameters check.
  * @details If the condition check fails then the kernel panics and halts.
  * @note    The condition is tested only if the @p CH_DBG_ENABLE_CHECKS switch
@@ -1358,7 +1353,7 @@ struct nil_system {
 extern stkalign_t __main_thread_stack_base__, __main_thread_stack_end__;
 #endif
 extern nil_system_t nil;
-extern const thread_config_t nil_thd_configs[];
+extern const thread_descriptor_t nil_thd_configs[];
 #endif
 
 #ifdef __cplusplus
@@ -1380,8 +1375,9 @@ extern "C" {
   void chSchDoReschedule(void);
   void chSchRescheduleS(void);
   msg_t chSchGoSleepTimeoutS(tstate_t newstate, sysinterval_t timeout);
-  thread_t *chThdCreateI(const thread_config_t *tcp);
-  thread_t *chThdCreate(const thread_config_t *tcp);
+  bool chTimeIsInRangeX(systime_t time, systime_t start, systime_t end);
+  thread_t *chThdCreateI(const thread_descriptor_t *tdp);
+  thread_t *chThdCreate(const thread_descriptor_t *tdp);
   void chThdExit(msg_t msg);
 #if CH_CFG_USE_WAITEXIT == TRUE
   msg_t chThdWait(thread_t *tp);
