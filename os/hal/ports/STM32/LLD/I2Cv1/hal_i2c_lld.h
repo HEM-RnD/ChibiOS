@@ -436,6 +436,7 @@ struct I2CDriver {
    * @brief     Current slave address without R/W bit.
    */
   i2caddr_t                 addr;
+#if (STM32_I2C_USE_DMA == TRUE)
   /**
    * @brief RX DMA mode bit mask.
    */
@@ -452,6 +453,25 @@ struct I2CDriver {
    * @brief     Transmit DMA channel.
    */
   const stm32_dma_stream_t  *dmatx;
+#else /* STM32_I2C_USE_DMA == FALSE */
+  /**
+   * @brief     Pointer to the next TX buffer location.
+   */
+  const uint8_t             *txptr;
+  /**
+   * @brief     Number of bytes in TX phase.
+   */
+  size_t                    txbytes;
+  /**
+   * @brief     Pointer to the next RX buffer location.
+   */
+  uint8_t                   *rxptr;
+  /**
+   * @brief     Number of bytes in RX phase.
+   */
+  size_t                    rxbytes;
+#endif /* STM32_I2C_USE_DMA == FALSE */
+
   /**
    * @brief     Pointer to the I2Cx registers block.
    */
