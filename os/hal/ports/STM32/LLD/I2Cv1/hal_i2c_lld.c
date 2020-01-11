@@ -374,6 +374,7 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
     (void)dp->SR2;
 }
 
+#if STM32_I2C_USE_DMA == TRUE
 /**
  * @brief   DMA RX end IRQ handler.
  *
@@ -385,20 +386,17 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
 static void i2c_lld_serve_rx_end_irq(I2CDriver *i2cp, uint32_t flags) {
   I2C_TypeDef *dp = i2cp->i2c;
 
-#if STM32_I2C_USE_DMA == TRUE
   /* DMA errors handling.*/
 #if defined(STM32_I2C_DMA_ERROR_HOOK)
   if ((flags & (STM32_DMA_ISR_TEIF | STM32_DMA_ISR_DMEIF)) != 0) {
     STM32_I2C_DMA_ERROR_HOOK(i2cp);
   }
 #else
-  (void)flags;
+  (void)flags;  
 #endif
-#endif /* STM32_I2C_USE_DMA == TRUE */
 
-#if STM32_I2C_USE_DMA == TRUE
   dmaStreamDisable(i2cp->dmarx);
-#endif /* STM32_I2C_USE_DMA == TRUE */
+
 
   dp->CR2 &= ~I2C_CR2_LAST;
   dp->CR1 &= ~I2C_CR1_ACK;
@@ -416,7 +414,6 @@ static void i2c_lld_serve_rx_end_irq(I2CDriver *i2cp, uint32_t flags) {
 static void i2c_lld_serve_tx_end_irq(I2CDriver *i2cp, uint32_t flags) {
   I2C_TypeDef *dp = i2cp->i2c;
 
-#if STM32_I2C_USE_DMA == TRUE
   /* DMA errors handling.*/
 #if defined(STM32_I2C_DMA_ERROR_HOOK)
   if ((flags & (STM32_DMA_ISR_TEIF | STM32_DMA_ISR_DMEIF)) != 0) {
@@ -425,17 +422,15 @@ static void i2c_lld_serve_tx_end_irq(I2CDriver *i2cp, uint32_t flags) {
 #else
   (void)flags;
 #endif
-#endif /* STM32_I2C_USE_DMA == TRUE */
 
-#if STM32_I2C_USE_DMA == TRUE
   dmaStreamDisable(i2cp->dmatx);
-#endif /* STM32_I2C_USE_DMA == TRUE */
 
   /* Enables interrupts to catch BTF event meaning transmission part complete.
      Interrupt handler will decide to generate STOP or to begin receiving part
      of R/W transaction itself.*/
   dp->CR2 |= I2C_CR2_ITEVTEN;
 }
+#endif /* STM32_I2C_USE_DMA == TRUE */
 
 /**
  * @brief   I2C error handler.
